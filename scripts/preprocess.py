@@ -3,20 +3,20 @@ scripts/preprocess.py
 
 Usage:
     python scripts/preprocess.py --project activemq
-    python scripts/preprocess.py --project alluxio
     python scripts/preprocess.py --all
 """
 
 import argparse
 import logging
 import pandas as pd
+import torch
 from pathlib import Path
 import sys
 
-# So Python can find src/
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.data.preprocessor import MethodIndex
+from src.data.feature_builder import FeatureBuilder
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,9 +32,10 @@ def process_project(project: str, data_dir: Path, processed_dir: Path):
     logger.info(f"Processing project: {project}")
     logger.info(f"{'='*40}")
 
-    raw_dir = data_dir / project
+    raw_dir  = data_dir / project
+    save_dir = processed_dir / project
 
-    # --- Load ground truth ---
+    # ── Step 1: Method Index ─────────────────────────────────────
     gt_path = raw_dir / "ground_truth.csv"
     if not gt_path.exists():
         logger.error(f"ground_truth.csv not found at {gt_path}")
@@ -44,12 +45,25 @@ def process_project(project: str, data_dir: Path, processed_dir: Path):
     logger.info(f"Loaded ground_truth.csv: {ground_truth.shape}")
     logger.info(f"Columns: {ground_truth.columns.tolist()}")
 
-    # --- Build method index ---
     index = MethodIndex(ground_truth)
-
-    # --- Save ---
-    save_dir = processed_dir / project
     index.save(save_dir)
+
+    # ── Step 2: Feature Matrix ───────────────────────────────────
+    metrics_path = raw_dir / "metrics.csv"
+    if not metrics_path.exists():
+        logger.error(f"metrics.csv not found at {metrics_path}")
+        return
+
+    metrics = pd.read_csv(metrics_path)
+    logger.info(f"Loaded metrics.csv: {metrics.shape}")
+
+    builder = FeatureBuilder()
+    X = builder.build(metrics, index.method_to_idx, fit_scaler=True)
+    builder.save(save_dir)
+
+    # Save feature matrix
+    torch.save(X, save_dir / "X.pt")
+    logger.info(f"Feature matrix saved: {X.shape}")
 
     logger.info(f"Done: {project}")
     logger.info("")
@@ -57,7 +71,7 @@ def process_project(project: str, data_dir: Path, processed_dir: Path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Build method index for feature envy projects"
+        description="Preprocess feature envy projects"
     )
     parser.add_argument(
         "--project",
