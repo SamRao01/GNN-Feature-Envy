@@ -1,0 +1,31 @@
+# ─── Core PyTorch ───────────────────────────────────────────────
+torch==2.2.2
+
+# ─── PyTorch Geometric ──────────────────────────────────────────
+# Note: torch-scatter, torch-sparse, torch-cluster are now
+# bundled into torch-geometric for Python 3.12+ on Mac
+torch-geometric
+
+# ─── Data Processing ────────────────────────────────────────────
+numpy==1.24.4
+pandas==2.0.3
+scikit-learn==1.3.2
+scipy==1.11.4
+
+# ─── Visualization ──────────────────────────────────────────────
+matplotlib==3.7.3
+seaborn==0.12.2
+
+# ─── Configuration ──────────────────────────────────────────────
+pyyaml==6.0.1
+
+# ─── Notebooks ──────────────────────────────────────────────────
+jupyter==1.0.0
+ipykernel==6.26.0
+
+# ─── Testing ────────────────────────────────────────────────────
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# ─── Utilities ──────────────────────────────────────────────────
+tqdm==4.66.1
