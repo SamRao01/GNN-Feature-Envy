@@ -47,15 +47,12 @@ class GraphBuilder:
 
         Returns:
             PyG Data object with x, edge_index, y, target_class,
-            train_mask, val_mask, test_mask
+            source_class, train_mask, val_mask, test_mask
         """
         n_methods = len(method_to_idx)
 
-        # ── Step 3A: Label vector y ──────────────────────────────
-        y = self._build_labels(ground_truth, method_to_idx, n_methods)
-
-        # ── Step 3B: Target class vector ────────────────────────
-        target_classes = self._build_target_classes(
+        # ── Step 3A: Label vector y + source/target classes ─────
+        y, source_classes, target_classes = self._build_labels(
             ground_truth, method_to_idx, n_methods
         )
 
@@ -64,7 +61,8 @@ class GraphBuilder:
 
         # ── Step 5: Train/val/test masks ─────────────────────────
         train_mask, val_mask, test_mask = self._build_masks(
-            n_methods, y, train_ratio, val_ratio, test_ratio, random_seed
+            n_methods, y, train_ratio, val_ratio,
+            test_ratio, random_seed
         )
 
         # ── Package into PyG Data object ─────────────────────────
@@ -72,6 +70,7 @@ class GraphBuilder:
             x            = X,
             edge_index   = edge_index,
             y            = y,
+            source_class = source_classes,
             target_class = target_classes,
             train_mask   = train_mask,
             val_mask     = val_mask,
@@ -81,59 +80,94 @@ class GraphBuilder:
         self._log_summary(graph, y)
         return graph
 
-    # ────────────────────────────────────────────────────────────
-    # Step 3A: Labels
-    # ────────────────────────────────────────────────────────────
-
     def _build_labels(
         self,
         ground_truth: pd.DataFrame,
         method_to_idx: dict,
         n_methods: int
-    ) -> torch.Tensor:
+    ) -> tuple:
+        """
+        Builds three tensors from ground_truth.csv:
 
-        y = torch.zeros(n_methods, dtype=torch.long)
+            y              — binary label (0=clean, 1=smelly)
+            source_classes — class the method currently lives in
+            target_classes — class the method should move to
+                             (same as source for clean methods)
+
+        Having source_class separate from target_class is essential
+        for refactoring evaluation — the recommender needs to know
+        which class to exclude when searching for the best target.
+
+        Args:
+            ground_truth:  ground_truth.csv dataframe
+            method_to_idx: method index mapping
+            n_methods:     total number of methods
+
+        Returns:
+            y:              [N] binary labels
+            source_classes: [N] source class IDs
+            target_classes: [N] target class IDs (-1 if unknown)
+        """
+        y              = torch.zeros(n_methods, dtype=torch.long)
+        source_classes = torch.zeros(n_methods, dtype=torch.long)
+        target_classes = torch.full(
+            (n_methods,), -1, dtype=torch.long
+        )
 
         for _, row in ground_truth.iterrows():
             method_id = int(row['method_id'])
-            if method_id in method_to_idx:
-                idx    = method_to_idx[method_id]
-                y[idx] = int(row['label'])
 
+            if method_id not in method_to_idx:
+                continue
+
+            idx = method_to_idx[method_id]
+
+            # Label
+            y[idx] = int(row['label'])
+
+            # Source class — where the method currently lives
+            source_classes[idx] = int(row['source_class_id'])
+
+            # Target class — where it should move to
+            # For clean methods, target == source (no move needed)
+            target_classes[idx] = int(row['target_class_id'])
+
+        # Logging
         n_positive = y.sum().item()
         n_negative = (y == 0).sum().item()
+
         logger.info(f"Labels built:")
         logger.info(f"  Positive (smelly): {n_positive}")
         logger.info(f"  Negative (clean):  {n_negative}")
-        logger.info(f"  Positive rate:     {100*n_positive/n_methods:.2f}%")
+        logger.info(
+            f"  Positive rate:     "
+            f"{100*n_positive/n_methods:.2f}%"
+        )
 
-        return y
+        # Sanity check: for smelly methods, source != target
+        smelly_mask     = (y == 1)
+        src             = source_classes[smelly_mask]
+        tgt             = target_classes[smelly_mask]
+        correct_smelly  = (src != tgt).sum().item()
+        logger.info(
+            f"  Smelly methods where source != target: "
+            f"{correct_smelly} / {n_positive} "
+            f"(expect all)"
+        )
 
-    # ────────────────────────────────────────────────────────────
-    # Step 3B: Target classes
-    # ────────────────────────────────────────────────────────────
+        # Sanity check: for clean methods, source == target
+        clean_mask      = (y == 0)
+        src_clean       = source_classes[clean_mask]
+        tgt_clean       = target_classes[clean_mask]
+        correct_clean   = (src_clean == tgt_clean).sum().item()
+        logger.info(
+            f"  Clean methods where source == target: "
+            f"{correct_clean} / {n_negative} "
+            f"(expect all)"
+        )
 
-    def _build_target_classes(
-        self,
-        ground_truth: pd.DataFrame,
-        method_to_idx: dict,
-        n_methods: int
-    ) -> torch.Tensor:
+        return y, source_classes, target_classes
 
-        # -1 means no refactoring target (method is clean)
-        target_classes = torch.full((n_methods,), -1, dtype=torch.long)
-
-        for _, row in ground_truth.iterrows():
-            method_id = int(row['method_id'])
-            if method_id in method_to_idx:
-                idx = method_to_idx[method_id]
-                target_classes[idx] = int(row['target_class_id'])
-
-        known_targets = (target_classes >= 0).sum().item()
-        logger.info(f"Target classes built:")
-        logger.info(f"  Methods with known target: {known_targets}")
-
-        return target_classes
 
     # ────────────────────────────────────────────────────────────
     # Step 4: Edge index
