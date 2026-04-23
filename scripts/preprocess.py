@@ -2,7 +2,7 @@
 scripts/preprocess.py
 
 Usage:
-    python scripts/preprocess.py --project activemq
+    python scripts/preprocess.py --project alluxio
     python scripts/preprocess.py --all
 """
 
