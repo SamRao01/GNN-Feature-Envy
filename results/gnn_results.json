@@ -1,0 +1,250 @@
+{
+  "activemq": {
+    "detection": {
+      "precision1": {
+        "mean": 0.5312,
+        "std": 0.0347
+      },
+      "recall1": {
+        "mean": 0.9174,
+        "std": 0.0454
+      },
+      "f1_score1": {
+        "mean": 0.6727,
+        "std": 0.0396
+      },
+      "accuracy": {
+        "mean": 0.9662,
+        "std": 0.0045
+      },
+      "n_predicted_smelly": {
+        "mean": 202.3333,
+        "std": 5.3125
+      },
+      "n_true_smelly": {
+        "mean": 117.0,
+        "std": 0.0
+      }
+    },
+    "refactoring": {
+      "accuracy": {
+        "mean": 0.8231,
+        "std": 0.0077
+      },
+      "precision2": {
+        "mean": 0.437,
+        "std": 0.0263
+      },
+      "recall2": {
+        "mean": 0.755,
+        "std": 0.0358
+      },
+      "f1_score2": {
+        "mean": 0.5535,
+        "std": 0.0303
+      },
+      "target_acc_on_gt_positives": {
+        "mean": 0.755,
+        "std": 0.0358
+      },
+      "true_refactoring_smells": {
+        "mean": 88.3333,
+        "std": 4.1899
+      },
+      "pred_smells": {
+        "mean": 202.3333,
+        "std": 5.3125
+      },
+      "total_smells": {
+        "mean": 117.0,
+        "std": 0.0
+      }
+    }
+  },
+  "alluxio": {
+    "detection": {
+      "precision1": {
+        "mean": 0.6431,
+        "std": 0.0241
+      },
+      "recall1": {
+        "mean": 0.8539,
+        "std": 0.0171
+      },
+      "f1_score1": {
+        "mean": 0.7336,
+        "std": 0.0215
+      },
+      "accuracy": {
+        "mean": 0.9677,
+        "std": 0.003
+      },
+      "n_predicted_smelly": {
+        "mean": 97.0,
+        "std": 2.1602
+      },
+      "n_true_smelly": {
+        "mean": 73.0,
+        "std": 0.0
+      }
+    },
+    "refactoring": {
+      "accuracy": {
+        "mean": 0.0477,
+        "std": 0.0215
+      },
+      "precision2": {
+        "mean": 0.031,
+        "std": 0.0149
+      },
+      "recall2": {
+        "mean": 0.0411,
+        "std": 0.0194
+      },
+      "f1_score2": {
+        "mean": 0.0354,
+        "std": 0.0168
+      },
+      "target_acc_on_gt_positives": {
+        "mean": 0.0411,
+        "std": 0.0194
+      },
+      "true_refactoring_smells": {
+        "mean": 3.0,
+        "std": 1.4142
+      },
+      "pred_smells": {
+        "mean": 97.0,
+        "std": 2.1602
+      },
+      "total_smells": {
+        "mean": 73.0,
+        "std": 0.0
+      }
+    }
+  },
+  "kafka": {
+    "detection": {
+      "precision1": {
+        "mean": 0.5093,
+        "std": 0.0612
+      },
+      "recall1": {
+        "mean": 0.8277,
+        "std": 0.014
+      },
+      "f1_score1": {
+        "mean": 0.6283,
+        "std": 0.0482
+      },
+      "accuracy": {
+        "mean": 0.9549,
+        "std": 0.0098
+      },
+      "n_predicted_smelly": {
+        "mean": 147.0,
+        "std": 19.8662
+      },
+      "n_true_smelly": {
+        "mean": 89.0,
+        "std": 0.0
+      }
+    },
+    "refactoring": {
+      "accuracy": {
+        "mean": 0.05,
+        "std": 0.036
+      },
+      "precision2": {
+        "mean": 0.0276,
+        "std": 0.0199
+      },
+      "recall2": {
+        "mean": 0.0412,
+        "std": 0.0295
+      },
+      "f1_score2": {
+        "mean": 0.0331,
+        "std": 0.0237
+      },
+      "target_acc_on_gt_positives": {
+        "mean": 0.0412,
+        "std": 0.0295
+      },
+      "true_refactoring_smells": {
+        "mean": 3.6667,
+        "std": 2.6247
+      },
+      "pred_smells": {
+        "mean": 147.0,
+        "std": 19.8662
+      },
+      "total_smells": {
+        "mean": 89.0,
+        "std": 0.0
+      }
+    }
+  },
+  "realm-java": {
+    "detection": {
+      "precision1": {
+        "mean": 0.832,
+        "std": 0.0463
+      },
+      "recall1": {
+        "mean": 0.8654,
+        "std": 0.0314
+      },
+      "f1_score1": {
+        "mean": 0.8469,
+        "std": 0.0191
+      },
+      "accuracy": {
+        "mean": 0.9669,
+        "std": 0.005
+      },
+      "n_predicted_smelly": {
+        "mean": 54.3333,
+        "std": 4.714
+      },
+      "n_true_smelly": {
+        "mean": 52.0,
+        "std": 0.0
+      }
+    },
+    "refactoring": {
+      "accuracy": {
+        "mean": 0.0223,
+        "std": 0.0008
+      },
+      "precision2": {
+        "mean": 0.0185,
+        "std": 0.0015
+      },
+      "recall2": {
+        "mean": 0.0192,
+        "std": 0.0
+      },
+      "f1_score2": {
+        "mean": 0.0188,
+        "std": 0.0008
+      },
+      "target_acc_on_gt_positives": {
+        "mean": 0.0192,
+        "std": 0.0
+      },
+      "true_refactoring_smells": {
+        "mean": 1.0,
+        "std": 0.0
+      },
+      "pred_smells": {
+        "mean": 54.3333,
+        "std": 4.714
+      },
+      "total_smells": {
+        "mean": 52.0,
+        "std": 0.0
+      }
+    }
+  }
+}
