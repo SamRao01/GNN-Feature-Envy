@@ -95,7 +95,7 @@ def main():
     parser.add_argument(
         "--data_dir",
         type    = str,
-        default = "data",
+        default = "data/raw",
         help    = "Path to raw data directory"
     )
     parser.add_argument(

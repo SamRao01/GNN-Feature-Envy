@@ -1,15 +1,125 @@
+# Feature Envy Detection using Graph Neural Networks
+
+A reproducible pipeline for detecting and refactoring Feature Envy code smells
+using Graph Neural Networks, based on the paper:
+
+> "Efficient Feature Envy Detection and Refactoring Based on Graph Neural Network"
+> Yu et al., Automated Software Engineering (2025)
+> DOI: https://doi.org/10.1007/s10515-024-00476-3
+
+**Course:** DSCI 644.02 — Software Engineering for Data Science
+**Team:** Group 4
+
+---
+
+## What is Feature Envy?
+
+Feature Envy is a code smell where a method interacts more with an external
+class than its own class — suggesting the method belongs elsewhere. This
+pipeline automates:
+
+1. **Detection** — identifying which methods have feature envy
+2. **Refactoring recommendation** — suggesting which class the method should
+   move to (Move Method refactoring)
+
+---
+
+---
+
+## Setup
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/yourname/feature-envy-gnn
+cd feature-envy-gnn
+```
+
+### 2. Create a virtual environment
+```bash
+python -m venv .venv
+
+# Mac/Linux
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
+### 3. Install PyTorch
+```bash
+pip install torch==2.2.2
+```
+
+### 4. Install PyTorch Geometric
+
+**Mac (Python 3.12+):**
+```bash
+pip install torch-geometric
+```
+
+**Linux/Windows with CUDA 11.8:**
+```bash
+pip install torch-geometric
+pip install torch-scatter torch-sparse torch-cluster \
+    -f https://data.pyg.org/whl/torch-2.2.2+cu118.html
+```
+
+**Linux/Windows with CUDA 12.1:**
+```bash
+pip install torch-geometric
+pip install torch-scatter torch-sparse torch-cluster \
+    -f https://data.pyg.org/whl/torch-2.2.2+cu121.html
+```
+
+### 5. Install remaining dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 6. Verify installation
+```bash
+python -c "
+import torch
+import torch_geometric
+print(f'PyTorch:           {torch.__version__}')
+print(f'PyTorch Geometric: {torch_geometric.__version__}')
+print(f'CUDA available:    {torch.cuda.is_available()}')
+print('All good!')
+"
+```
+
+> **Note:** On Mac with Python 3.12, `torch-scatter`, `torch-sparse`,
+> and `torch-cluster` are bundled into `torch-geometric` and do not
+> need to be installed separately. NumPy must be below version 2.0
+> for compatibility with PyTorch 2.2.2 — this is handled automatically
+> by `requirements.txt`.
+
+---
+
+## Data
+
+### Download
+
+The dataset is sourced from:
+> Sharma, T., Kessentini, M.: Qscored — A large dataset of code smells
+> and quality metrics. MSR 2021.
+> DOI: https://doi.org/10.5281/zenodo.4468361
+
+Download the dataset and place files under `data/raw/` following
+the structure shown above.
+
 ### File Descriptions
 
 | File | Description | Used For |
 |------|-------------|----------|
-| `method.csv` | Method identifiers and metadata | Node list |
-| `metrics.csv` | Code metrics per method (LOC, CC, PC, etc.) | Node features X |
+| `ground_truth.csv` | Method IDs, labels, source and target class | Labels, refactoring targets |
+| `metrics.csv` | 7 code metrics per method (CC, PC, LOC, etc.) | Node features X |
 | `method-invocate-method.csv` | Method call relationships | Edge list A |
-| `ground_truth.csv` | Labels and refactoring targets | Labels y, targets |
-| `classinfo.csv` | Class identifiers and metadata | Refactoring mapping |
-| `methodInfo.csv` | Rich method metadata and names | Semantic embeddings |
-| `method_tokens.pkl` | Tokenized method names | SFFL semantic input |
-| `class_tokens.pkl` | Tokenized class names | SFFL semantic input |
+| `method.csv` | Method identifiers and metadata | Node list |
+| `classinfo.csv` | Class identifiers and metadata | Class mapping |
+| `methodInfo.csv` | Rich method metadata | Semantic info |
+| `method_tokens.pkl` | Tokenized method names | SFFL (future) |
+| `class_tokens.pkl` | Tokenized class names | SFFL (future) |
 
 ### Dataset Statistics
 
@@ -25,123 +135,69 @@
 
 ## Running the Pipeline
 
-### Step 1 — Explore the data (optional)
+The pipeline consists of five sequential steps. Each step must be
+completed before the next can begin.
+
+---
+
+### Step 1 — Data Exploration (optional)
+
+Before preprocessing, explore the raw data to understand column names,
+check for nulls, and verify ID alignment across files.
+
 ```bash
 jupyter notebook notebooks/01_data_exploration.ipynb
 ```
 
+Key checks performed:
+- Column names in each CSV file
+- Null values across all files
+- Label distribution (positive rate per project)
+- ID consistency across ground_truth.csv, metrics.csv,
+  and method-invocate-method.csv
+
+---
+
 ### Step 2 — Preprocess
 
-Process a single project:
-```bash
-python scripts/preprocess.py --project activemq
-```
+Converts raw CSVs into PyTorch Geometric graph objects.
+Must be run once before training.
 
-Process all projects:
 ```bash
+# Process a single project
+python scripts/preprocess.py --project activemq
+
+# Process all projects
 python scripts/preprocess.py --all
 ```
 
-### Step 3 — Train
-```bash
-python scripts/train.py --project activemq --config configs/default.yaml
-```
+What this does:
+1. **Method index** — maps every method ID to a consistent integer
+   index 0 to N-1, saved as `method_to_idx.pt`
+2. **Feature matrix X** — extracts 7 code metrics per method,
+   normalizes with StandardScaler, saved as `X.pt`
+3. **Graph construction** — builds edge index from method call
+   relationships, zero edges dropped across all projects
+4. **Label vector** — binary labels from `ground_truth.csv`,
+   source and target class IDs stored separately
+5. **Train/val/test splits** — stratified 60/20/20 splits across
+   3 random seeds, saved as separate `graph.pt` files per seed
 
-### Step 4 — Evaluate
-```bash
-python scripts/evaluate.py --project activemq
-```
-
----
-
-## Running Tests
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run with coverage report
-pytest tests/ -v --cov=src --cov-report=term-missing
-
-# Run a specific test file
-pytest tests/test_preprocessor.py -v
-```
+Expected output per project:
 
 ---
 
-## Results
+### Step 3 — Heuristic Baseline
 
-*To be updated as experiments are completed.*
-
-| Project | Precision1 | Recall1 | F1-Score1 | Refactoring Acc |
-|---------|------------|---------|-----------|-----------------|
-| ActiveMQ | - | - | - | - |
-| Alluxio | - | - | - | - |
-| BinNavi | - | - | - | - |
-| Kafka | - | - | - | - |
-| Realm-java | - | - | - | - |
-| **Average** | **-** | **-** | **-** | **-** |
-
-*Results reported as mean ± std across 5 random seeds.*
-
----
-
-## Reproducing Results
-
-All experiments use fixed random seeds for reproducibility:
+Runs a deterministic rule-based detector to establish a performance
+floor before any learned model is introduced.
 
 ```bash
-# Runs experiments across all 5 seeds and reports mean +- std
-python scripts/train.py --project activemq --seeds 1 2 3 4 5
+# Run on a single project
+python scripts/baseline.py --project activemq
+
+# Run on all projects with optimal threshold
+python scripts/baseline.py --all --threshold 0.6
 ```
 
----
-
-## Key Design Decisions
-
-**Why GNNs?** Feature envy is a relational smell — it's defined by how a method
-relates to other methods and classes. GNNs operate directly on graph structure,
-capturing interaction patterns that simple metrics cannot.
-
-**Why GraphSMOTE?** Smelly methods are rare (3–10% of all methods). Without
-imbalance handling, the model collapses to predicting all-negative. GraphSMOTE
-generates synthetic smelly nodes in the graph's embedding space to balance
-training.
-
-**Why stratified splits?** With low positive rates, random splits can produce
-training sets with almost no positive examples. Stratified splitting preserves
-the positive rate across train/val/test.
-
----
-
-## References
-
-1. Yu et al. (2025). Efficient Feature Envy Detection and Refactoring Based on
-   Graph Neural Network. *Automated Software Engineering*, 32(7).
-   https://doi.org/10.1007/s10515-024-00476-3
-
-2. Sharma & Kessentini (2021). Qscored: A large dataset of code smells and
-   quality metrics. *MSR 2021*.
-   https://doi.org/10.5281/zenodo.4468361
-
-3. Hamilton et al. (2017). Inductive Representation Learning on Large Graphs
-   (GraphSAGE). *NeurIPS 2017*.
-
-4. Zhao et al. (2021). GraphSMOTE: Imbalanced Node Classification on Graphs
-   with Graph Neural Networks. *WSDM 2021*.
-
----
-
-## Team
-
-**Group 4 — DSCI 644.02, Software Engineering for Data Science**
-
----
-
-## Phase Reports
-
-| Phase | Description | Report |
-|-------|-------------|--------|
-| Phase 1 | Problem definition, dataset strategy, RQs | [Phase 1 Report](reports/phase1_report.pdf) |
-| Phase 2 | Baseline pipeline implementation | [Phase 2 Report](reports/phase2_report.pdf) |
-| Phase 3 | Optimized solution and results | [Phase 3 Report](reports/phase3_report.pdf) |
+Detection rule:

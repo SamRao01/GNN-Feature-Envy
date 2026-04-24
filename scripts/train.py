@@ -8,6 +8,7 @@ Usage:
     python scripts/train.py --project activemq --seeds 3 4 5
     python scripts/train.py --project activemq --epochs 500
     python scripts/train.py --all --epochs 1000
+    caffeinate -i python scripts/train.py --project activemq --epochs 1000 --seeds 3 2>&1 | tee results/activemq_seed3_log.txt
 """
 
 import argparse
