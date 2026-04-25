@@ -427,17 +427,49 @@ pytest tests/test_metrics.py -v
 
 ## Results
 
-GNN detection results (mean across 3 seeds):
+### Detection Results (mean across 3 seeds)
 
-| Project | Precision1 | Recall1 | F1-Score1 | vs Baseline |
-|---------|-----------|---------|-----------|-------------|
-| ActiveMQ | - | - | - | - |
-| Alluxio | - | - | - | - |
-| BinNavi | - | - | - | - |
-| Kafka | - | - | - | - |
-| Realm-java | 77.59% | 88.08% | 82.12% | +52.27% |
+| Project | Precision1 | Recall1 | F1-Score1 | vs Baseline | vs Paper |
+|---------|-----------|---------|-----------|-------------|----------|
+| ActiveMQ | 53.12% ± 3.47% | 91.74% ± 4.54% | 67.27% ± 3.96% | +48.70% | -0.70% |
+| Alluxio | 64.31% ± 2.41% | 85.39% ± 1.71% | 73.36% ± 2.15% | +33.72% | +0.90% |
+| BinNavi | N/A | N/A | N/A | N/A | N/A |
+| Kafka | 50.93% ± 6.12% | 82.77% ± 1.40% | 62.83% ± 4.82% | +39.42% | -7.20% |
+| Realm-java | 83.20% ± 4.63% | 86.54% ± 3.14% | 84.69% ± 1.91% | +54.84% | +3.98% |
+| **Average** | **62.89%** | **86.61%** | **72.04%** | **+44.17%** | **-** |
 
-*Full results to be updated after all projects complete training.*
+> BinNavi excluded — training did not complete within available CPU time.
+> Average computed across 4 completed projects only.
+> Paper comparison uses SCG results reported in Yu et al. (2025).
+
+---
+
+### Refactoring Results (mean across 3 seeds)
+
+| Project | Precision2 | Recall2 | F1-Score2 | TargetAcc\|GT |
+|---------|-----------|---------|-----------|--------------|
+| ActiveMQ | 43.70% ± 2.63% | 75.50% ± 3.58% | 55.35% ± 3.03% | 75.50% |
+| Alluxio | 3.10% ± 1.49% | 4.11% ± 1.94% | 3.54% ± 1.68% | 4.11% |
+| BinNavi | N/A | N/A | N/A | N/A |
+| Kafka | 2.76% ± 1.99% | 4.12% ± 2.95% | 3.31% ± 2.37% | 4.12% |
+| Realm-java | 1.85% ± 0.15% | 1.92% ± 0.00% | 1.88% ± 0.08% | 1.92% |
+
+> ActiveMQ refactoring is notably strong due to its dense call graph
+> (15,482 nodes, 34,054 edges) providing richer structural signal
+> for the edge generator.
+
+---
+
+### Baseline Comparison (threshold = 0.6)
+
+| Project | Baseline F1 | GNN F1 | Improvement |
+|---------|------------|--------|-------------|
+| ActiveMQ | 18.57% | 67.27% | +48.70% |
+| Alluxio | 39.64% | 73.36% | +33.72% |
+| BinNavi | 23.94% | N/A | N/A |
+| Kafka | 23.41% | 62.83% | +39.42% |
+| Realm-java | 29.85% | 84.69% | +54.84% |
+| **Average** | **27.87%** | **72.04%** | **+44.17%** |
 
 ---
 
