@@ -584,4 +584,4 @@ python scripts/train.py --project <project> --seeds 3 --epochs 1000
 
 | Description | Report |
 |-------------|--------|
-| Full project report covering problem definition, baseline pipeline, optimized solution, and results | [Project Report](reports/project_report.pdf) |
+| Full project report covering problem definition, baseline pipeline, optimized solution, and results | [Project Report](reports/DSCI644_Project_Report.pdf) |
